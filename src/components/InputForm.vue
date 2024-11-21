@@ -1,7 +1,15 @@
 <template>
-  <div class="input-container">
-    <input type="text" v-model="taskText" placeholder="Enter a task" class="input" />
-    <button @click="addTask" class="button">Add</button>
+  <div class="input-form">
+    <input
+      type="text"
+      class="border border-gray-300 rounded px-2 py-1"
+      v-model="newTask"
+      @keyup.enter="addTask"
+      placeholder="Задача"
+    />
+    <button
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    @click="addTask">Добавить</button>
   </div>
 </template>
 
@@ -12,17 +20,22 @@ export default defineComponent({
   name: "InputForm",
   emits: ["add-task"],
   setup(_, { emit }) {
-    const taskText = ref("");
+    const newTask = ref("");
 
     const addTask = () => {
-      const text = taskText.value.trim();
-      if (text) {
-        emit("add-task", text);
-        taskText.value = "";
-      }
+      if (!newTask.value.trim()) return; // Prevent adding empty tasks
+      emit("add-task", newTask.value);
+      newTask.value = ""; // Clear the input field
     };
 
-    return { taskText, addTask };
+    return { newTask, addTask };
   },
 });
 </script>
+
+<style scoped>
+.input-form {
+  display: flex;
+  gap: 8px;
+}
+</style>

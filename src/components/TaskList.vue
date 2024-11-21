@@ -1,53 +1,50 @@
 <template>
-    <div class="task-list">
-        <TaskItem v-for="(task, index) in tasks" :key="task.id" :task="task" :index="index" @toggle-done="toggleDone"
-            @toggle-subtask="toggleSubtask" @drag-start="onDragStart" @drop="onDrop" />
-    </div>
+  <div class="task-list mt-4 flex flex-col">
+    <TaskItem
+        v-for="(task, index) in tasks"
+        :key="task.id"
+        :task="task"
+        :index="index"
+        @toggle-done="toggleDone"
+        @toggle-subtask="toggleSubtask"
+        @delete-task="deleteTask"
+      />
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from "vue";
+import { defineComponent } from "vue";
 import TaskItem from "./TaskItem.vue";
 
 export default defineComponent({
-    name: "TaskList",
-    components: { TaskItem },
-    props: {
-        tasks: { type: Array, required: true },
-    },
-    emits: ["update-tasks"],
-    setup(props, { emit }) {
-        const state = reactive({ dragIndex: -1 });
+  name: "TaskList",
+  components: { TaskItem },
+  props: {
+    tasks: { type: Array, required: true },
+  },
+  emits: ["update-tasks"], // Emit updated tasks to parent
+  setup(props, { emit }) {
 
-        const toggleDone = (task) => {
-            task.done = !task.done; // Flip the 'done' status
-            reorderTasks(); // Reorder the tasks to move 'done' tasks to the bottom
-        };
+    const toggleDone = (task) => {
+      task.done = !task.done;
+      emit("update-tasks", props.tasks); // Notify parent
+    };
 
+    const toggleSubtask = (task) => {
+      task.isSubtask = !task.isSubtask;
+      emit("update-tasks", props.tasks); // Notify parent
+    };
 
-        const toggleSubtask = (task) => {
-            task.isSubtask = !task.isSubtask;
-        };
+    const deleteTask = (task) => {
+      const updatedTasks = props.tasks.filter((t) => t.id !== task.id);
+      emit("update-tasks", updatedTasks);
+    };
 
-        const reorderTasks = () => {
-            emit(
-                "update-tasks",
-                [...props.tasks].sort((a, b) => Number(a.done) - Number(b.done))
-            );
-        };
-
-        const onDragStart = (index) => {
-            state.dragIndex = index;
-        };
-
-        const onDrop = (index) => {
-            const tasks = [...props.tasks];
-            const [movedTask] = tasks.splice(state.dragIndex, 1);
-            tasks.splice(index, 0, movedTask);
-            emit("update-tasks", tasks);
-        };
-
-        return { toggleDone, toggleSubtask, onDragStart, onDrop };
-    },
+    return {
+      toggleDone,
+      toggleSubtask,
+      deleteTask,
+    };
+  },
 });
 </script>
